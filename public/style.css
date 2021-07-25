@@ -754,12 +754,6 @@ input.hit-slider {
     height: 30px;
 }
 
-.round {
-    position: absolute;
-    bottom: 9px;
-    width: 100%;
-}
-
 .hit-avatar.hit-big > * {
     box-shadow: 0 0 5px 2px #d3961f;
 }
