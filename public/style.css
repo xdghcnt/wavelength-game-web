@@ -728,17 +728,17 @@ input.hit-slider {
 }
 
 .target-zone.big {
-    width: 22%;
+    width: 20%;
     background: #d3961f;
 }
 
 .target-zone.medium {
-    width: 14%;
+    width: 12%;
     background: #a4cea3;
 }
 
 .target-zone.small {
-    width: 5%;
+    width: 4%;
     background: #dd5d3e;
 }
 

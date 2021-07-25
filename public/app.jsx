@@ -500,7 +500,7 @@ class Game extends React.Component {
                                     </div>) : ""
                                 }
                                 <div className={cs("target-bar", {
-                                    inactive: data.phase === 0
+                                    inactive: (data.phase === 0 && !data.playerWin)
                                         || ([1, 2].includes(data.phase) && data.master !== data.userId)
                                 })}>
                                     {
