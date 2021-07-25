@@ -19,6 +19,7 @@ function init(wsServer, path) {
             super(hostId, hostData, userRegistry);
             const
                 room = {
+                    ...this.room,
                     inited: true,
                     hostId: hostId,
                     spectators: new JSONSet(),
@@ -29,6 +30,7 @@ function init(wsServer, path) {
                     players: new JSONSet(),
                     readyPlayers: new JSONSet(),
                     playerScores: {},
+                    playerScoreDiffs: {},
                     teamsLocked: false,
                     timed: true,
                     target: null,
@@ -37,11 +39,11 @@ function init(wsServer, path) {
                     cards: null,
                     playerHits: {},
                     phase: 0, // 3
-                    masterTime: 20,
+                    masterTime: 70,
                     hitTime: 20,
                     revealTime: 10,
                     round: 1,
-                    goal: 10,
+                    goal: 3,
                     time: null,
                     paused: true,
                     playerAvatars: {}
@@ -161,6 +163,7 @@ function init(wsServer, path) {
                         })
                         if (!initial)
                             room.master = getNextPlayer();
+                        room.playerScoreDiffs = {};
                         room.phase = 1;
                         room.cards = dealCards();
                         room.playerHits = {};
@@ -191,6 +194,7 @@ function init(wsServer, path) {
                                 points = 3;
                             else if ((leftShift > 0 && leftShift <= 10) || (rightShift > 0 && rightShift <= 10))
                                 points = 2;
+                            room.playerScoreDiffs[player] = points;
                             room.playerScores[player] = room.playerScores[player] || 0;
                             room.playerScores[room.master] = room.playerScores[room.master] || 0;
                             room.playerScores[player] += points;

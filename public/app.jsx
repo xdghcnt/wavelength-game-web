@@ -388,9 +388,9 @@ class Game extends React.Component {
                 status = ``;
             } else if (data.phase === 0) {
                 if (data.players.length > 2)
-                    status = "Host can start game";
+                    status = "Хост может начать игру";
                 else
-                    status = "Not enough players";
+                    status = "Нужно минимум 3 человека";
             } else if (!isMaster) {
                 if (data.phase === 1)
                     status = `${data.playerNames[data.master]} придумывает...`;
@@ -400,11 +400,11 @@ class Game extends React.Component {
                     status = "Сморим че получилось";
             } else {
                 if (data.phase === 1)
-                    status = "Choose your card to tell a story";
+                    status = "Придумай подсказку";
                 else if (data.phase === 2)
-                    status = "Now tell a story";
+                    status = "Они отгадывают";
                 else if (data.phase === 3)
-                    status = "Now they will try to guess your card";
+                    status = "Сморим че получилось";
             }
             return (
                 <div className={cs("game", {timed: this.state.timed})}>
@@ -499,7 +499,10 @@ class Game extends React.Component {
                                         {data.cards.map((card) => (<div>{card}</div>))}
                                     </div>) : ""
                                 }
-                                <div className="target-bar">
+                                <div className={cs("target-bar", {
+                                    inactive: data.phase === 0
+                                        || ([1, 2].includes(data.phase) && data.master !== data.userId)
+                                })}>
                                     {
                                         (data.masterTarget || data.target)
                                             ? (<div>
@@ -527,7 +530,11 @@ class Game extends React.Component {
                                                     left: `${data.playerHits[player]}%`,
                                                     "background-color": data.playerColors[player]
                                                 }}>
-                                                    <div className="hit-avatar">
+                                                    <div className={cs("hit-avatar", {
+                                                        "hit-small": data.playerScoreDiffs[player] === 4,
+                                                        "hit-medium": data.playerScoreDiffs[player] === 3,
+                                                        "hit-big": data.playerScoreDiffs[player] === 2
+                                                    })}>
                                                         <Avatar data={data} player={player} hasBorder={true}/>
                                                     </div>
                                                 </div>
@@ -535,7 +542,7 @@ class Game extends React.Component {
                                     }
                                 </div>
                                 {
-                                    (data.phase === 2 && data.master !== data.userId)
+                                    (data.phase === 2 && data.master !== data.userId && data.players.includes(data.userId))
                                         ? (<input className="hit-slider" type="range"
                                                   defaultValue={data.playerHits[data.userId] || 50}
                                                   min="0"
