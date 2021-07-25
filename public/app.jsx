@@ -313,8 +313,8 @@ class Game extends React.Component {
     updateTimer(time) {
         const timeTotal = {
             1: this.state.masterTime,
-            2: this.state.teamTime,
-            3: this.state.votingTime,
+            2: this.state.hitTime,
+            3: this.state.revealTime,
         }[this.state.phase] * 1000;
         this.progressBarUpdate(timeTotal - time, timeTotal);
     }
@@ -372,12 +372,12 @@ class Game extends React.Component {
             if (data.phase !== 0 && data.timed) {
                 let timeStart = new Date();
                 this.timerTimeout = setTimeout(() => {
-                    if (this.state.timed && !this.state.paused && this.state.phase !== 2) {
+                    if (this.state.timed && !this.state.paused) {
                         let prevTime = this.state.time,
                             time = prevTime - (new Date - timeStart);
                         this.setState(Object.assign({}, this.state, {time: time}));
                         this.updateTimer(time);
-                        if (this.state.timed && time < 6000 && ((Math.floor(prevTime / 1000) - Math.floor(time / 1000)) > 0) && !parseInt(localStorage.muteSounds))
+                        if (this.state.phase !== 3 && this.state.timed && time < 6000 && ((Math.floor(prevTime / 1000) - Math.floor(time / 1000)) > 0) && !parseInt(localStorage.muteSounds))
                             this.timerSound.play();
                     }
                     if (!this.state.timed)
@@ -393,11 +393,11 @@ class Game extends React.Component {
                     status = "Not enough players";
             } else if (!isMaster) {
                 if (data.phase === 1)
-                    status = `${data.playerNames[data.master]} is making up a story...`;
+                    status = `${data.playerNames[data.master]} придумывает...`;
                 else if (data.phase === 2)
-                    status = "Now try to guess the card";
+                    status = "Отгадываем";
                 else if (data.phase === 3)
-                    status = "Now try to guess the card. Hurry!";
+                    status = "Сморим че получилось";
             } else {
                 if (data.phase === 1)
                     status = "Choose your card to tell a story";
@@ -521,7 +521,9 @@ class Game extends React.Component {
                                         Object.keys(data.playerHits)
                                             .filter((player) => player !== data.master)
                                             .map((player) => (
-                                                <div className="target" style={{
+                                                <div className={cs("target", {
+                                                    self: player === data.userId,
+                                                })} style={{
                                                     left: `${data.playerHits[player]}%`,
                                                     "background-color": data.playerColors[player]
                                                 }}>

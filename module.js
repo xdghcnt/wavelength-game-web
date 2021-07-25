@@ -95,7 +95,6 @@ function init(wsServer, path) {
                                 if (room.time <= 0) {
                                     clearInterval(interval);
                                     if (room.phase === 1) {
-                                        room.master = getNextPlayer();
                                         startRound();
                                     } else if (room.phase === 2) {
                                         endRound();
@@ -115,9 +114,6 @@ function init(wsServer, path) {
                         room.playerWin = null;
                         room.clue = null;
                         room.playerScores = {};
-                        [...room.players].forEach((player) => {
-                            state.playerHits[player] = 50;
-                        })
                         clearInterval(interval);
                         startRound(true);
                     } else {
@@ -142,14 +138,17 @@ function init(wsServer, path) {
                     room.readyPlayers.clear();
                     if ([...room.players].indexOf(room.master) === room.players.size - 1)
                         room.round++;
-                    if (room.round === room.goal)
-                        room.playerWin = Object.keys(room.playerScores)
-                            .map((player) => room.playerScores[player])
-                            .sort()
-                            .reverse()[0]
+                    if (room.round === room.goal) {
+                        let maxScore = 0;
+                        Object.keys(room.playerScores).forEach((player) => {
+                            if (room.playerScores[player] > maxScore)
+                                room.playerWin = player;
+                        });
+                    }
                     if (room.playerWin)
                         endGame();
                     else {
+                        startTimer();
                         update();
                         updatePlayerState();
                     }
@@ -157,6 +156,9 @@ function init(wsServer, path) {
                 startRound = (initial) => {
                     room.readyPlayers.clear();
                     if (room.players.size >= 3) {
+                        [...room.players].forEach((player) => {
+                            state.playerHits[player] = 50;
+                        })
                         if (!initial)
                             room.master = getNextPlayer();
                         room.phase = 1;
@@ -200,6 +202,7 @@ function init(wsServer, path) {
                     if (room.master === playerId)
                         room.master = getNextPlayer();
                     room.players.delete(playerId);
+                    delete state.playerHits[playerId];
                     room.readyPlayers.delete(playerId);
                     if (room.spectators.has(playerId) || !room.onlinePlayers.has(playerId)) {
                         room.spectators.delete(playerId);
@@ -207,7 +210,7 @@ function init(wsServer, path) {
                         this.emit("user-kicked", playerId);
                     } else
                         room.spectators.add(playerId);
-                    if (room.phase !== 0 && room.players.size < PLAYERS_MIN)
+                    if (room.phase !== 0 && room.players.size < 3)
                         endGame();
                 },
                 userJoin = (data) => {

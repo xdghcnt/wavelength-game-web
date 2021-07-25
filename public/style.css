@@ -47,6 +47,7 @@ body.dark-theme {
     min-height: 500px;
     z-index: 1;
     user-select: none;
+    /* overflow: hidden; */
 }
 
 .game-board {
@@ -334,6 +335,7 @@ body {
 
 .spectators {
     border-top: 1px solid #cccccc;
+    padding-bottom: 20px;
 }
 
 .player-list-section {
@@ -653,12 +655,18 @@ a {
     background: #70d2a6;
 }
 
+.target.self {
+    z-index: 1;
+}
+
 .main {
     display: flex;
     width: 100%;
     flex-flow: column;
     padding: 20px;
     align-items: center;
+    justify-content: center;
+    overflow: hidden;
 }
 
 .add-command-button {
