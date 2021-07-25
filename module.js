@@ -12,7 +12,7 @@ function init(wsServer, path) {
         app.use("/brainwave", wsServer.static(`${registry.config.appDir}/public`));
     registry.handleAppPage(path, `${__dirname}/public/app.html`);
 
-    const words = JSON.parse(fs.readFileSync(`${__dirname}/words.json`))['en'];
+    const words = JSON.parse(fs.readFileSync(`${__dirname}/words.json`))['ru'];
 
     class GameState extends wsServer.users.RoomState {
         constructor(hostId, hostData, userRegistry) {
