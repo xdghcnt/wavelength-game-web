@@ -62,10 +62,14 @@ class Avatar extends React.Component {
     render() {
         const
             hasAvatar = !!this.props.data.playerAvatars[this.props.player],
+            playerBorder = !!this.props.hasBorder,
             avatarURI = `/brainwave/avatars/${this.props.player}/${this.props.data.playerAvatars[this.props.player]}.png`;
         return (
             <div className={cs("avatar", {"has-avatar": hasAvatar})}
                  style={{
+                     "border-color": playerBorder
+                         ? `${this.props.data.playerColors[this.props.player]}`
+                         : `none`,
                      "background-image": hasAvatar
                          ? `url(${avatarURI})`
                          : `none`,
@@ -477,8 +481,19 @@ class Game extends React.Component {
                                     {!~data.spectators.indexOf(data.userId) ? (
                                         <div className="join-button">Spectate</div>) : ""}
                                 </div>
+                                <div className="round">
+                                    Round: {data.round} / {data.goal}
+                                </div>
                             </div>
                             <div className="main">
+                                {
+                                    (data.players.includes(data.userId)
+                                        && (data.phase === 3 || (data.phase === 2 && data.master !== data.userId)))
+                                        ? (<div
+                                            className={cs("ready-button", {active: data.readyPlayers.includes(data.userId)})}
+                                            onClick={() => this.handleClickToggleReady()}>Ready</div>)
+                                        : ""
+                                }
                                 {
                                     data.cards != null ? (<div className="cards">
                                         {data.cards.map((card) => (<div>{card}</div>))}
@@ -487,9 +502,20 @@ class Game extends React.Component {
                                 <div className="target-bar">
                                     {
                                         (data.masterTarget || data.target)
-                                            ? (<div className="target-meter" style={{
-                                                left: `${data.masterTarget || data.target}%`
-                                            }}/>) : ''
+                                            ? (<div>
+                                                <div className="target-meter" style={{
+                                                    left: `${data.masterTarget || data.target}%`
+                                                }}/>
+                                                <div className="target-zone big" style={{
+                                                    left: `${data.masterTarget || data.target}%`
+                                                }}/>
+                                                <div className="target-zone medium" style={{
+                                                    left: `${data.masterTarget || data.target}%`
+                                                }}/>
+                                                <div className="target-zone small" style={{
+                                                    left: `${data.masterTarget || data.target}%`
+                                                }}/>
+                                            </div>) : ''
                                     }
                                     {
                                         Object.keys(data.playerHits)
@@ -498,26 +524,22 @@ class Game extends React.Component {
                                                 <div className="target" style={{
                                                     left: `${data.playerHits[player]}%`,
                                                     "background-color": data.playerColors[player]
-                                                }}/>
+                                                }}>
+                                                    <div className="hit-avatar">
+                                                        <Avatar data={data} player={player} hasBorder={true}/>
+                                                    </div>
+                                                </div>
                                             ))
                                     }
                                 </div>
                                 {
-                                    (data.master !== data.userId)
+                                    (data.phase === 2 && data.master !== data.userId)
                                         ? (<input className="hit-slider" type="range"
                                                   defaultValue={data.playerHits[data.userId] || 50}
                                                   min="0"
                                                   max="100"
                                                   onChange={(evt) =>
                                                       this.handleChangeSlider(evt.target.valueAsNumber)}/>)
-                                        : ""
-                                }
-                                {
-                                    (data.players.includes(data.userId)
-                                        && (data.phase === 3 || (data.phase === 2 && data.master !== data.userId)))
-                                        ? (<div
-                                            className={cs("ready-button", {active: data.readyPlayers.includes(data.userId)})}
-                                            onClick={() => this.handleClickToggleReady()}>Ready</div>)
                                         : ""
                                 }
                             </div>
@@ -540,18 +562,28 @@ class Game extends React.Component {
                                                                          className="material-icons">alarm_on</i>
                                             {(isHost && !inProcess) ? (<input id="round-time"
                                                                               type="number"
-                                                                              defaultValue={this.state.votingTime}
+                                                                              defaultValue={this.state.hitTime}
                                                                               min="0"
                                                                               onChange={evt => !isNaN(evt.target.valueAsNumber)
-                                                                                  && this.handleChangeTime(evt.target.valueAsNumber, "votingTime")}
-                                            />) : (<span className="value">{this.state.votingTime}</span>)}
+                                                                                  && this.handleChangeTime(evt.target.valueAsNumber, "hitTime")}
+                                            />) : (<span className="value">{this.state.hitTime}</span>)}
+                                        </div>
+                                        <div className="set-add-time"><i title="adding time"
+                                                                         className="material-icons">alarm_on</i>
+                                            {(isHost && !inProcess) ? (<input id="round-time"
+                                                                              type="number"
+                                                                              defaultValue={this.state.revealTime}
+                                                                              min="0"
+                                                                              onChange={evt => !isNaN(evt.target.valueAsNumber)
+                                                                                  && this.handleChangeTime(evt.target.valueAsNumber, "revealTime")}
+                                            />) : (<span className="value">{this.state.revealTime}</span>)}
                                         </div>
                                         <div className="set-goal"><i title="goal"
                                                                      className="material-icons">flag</i>
                                             {(isHost && !inProcess) ? (<input id="goal"
                                                                               type="number"
                                                                               defaultValue={this.state.goal}
-                                                                              min="0"
+                                                                              min="1"
                                                                               onChange={evt => !isNaN(evt.target.valueAsNumber)
                                                                                   && this.handleSetGoal(evt.target.valueAsNumber)}
                                             />) : (<span className="value">{this.state.goal}</span>)}

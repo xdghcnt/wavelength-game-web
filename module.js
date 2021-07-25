@@ -40,7 +40,7 @@ function init(wsServer, path) {
                     masterTime: 20,
                     hitTime: 20,
                     revealTime: 10,
-                    round: 0,
+                    round: 1,
                     goal: 10,
                     time: null,
                     paused: true,
