@@ -111,6 +111,8 @@ function init(wsServer, path) {
                 },
                 startGame = () => {
                     if (room.players.size >= 3) {
+                        room.master = [...room.players][0];
+                        room.round = 1;
                         room.paused = false;
                         room.teamsLocked = true;
                         room.playerWin = null;
@@ -140,7 +142,8 @@ function init(wsServer, path) {
                     room.readyPlayers.clear();
                     if ([...room.players].indexOf(room.master) === room.players.size - 1)
                         room.round++;
-                    if (room.round === room.goal) {
+                    if (room.round > room.goal) {
+                        room.round--;
                         let maxScore = 0;
                         Object.keys(room.playerScores).forEach((player) => {
                             if (room.playerScores[player] > maxScore)
@@ -258,6 +261,7 @@ function init(wsServer, path) {
             this.userLeft = userLeft;
             this.userEvent = userEvent;
             this.eventHandlers = {
+                ...this.eventHandlers,
                 "update-avatar": (user, id) => {
                     room.playerAvatars[user] = id;
                     update()

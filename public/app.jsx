@@ -440,18 +440,10 @@ class Game extends React.Component {
                                             <div className="rtb-slice2"/>
                                         </div>
                                         <div className="rtb-content">{
-                                            !data.playerWin ?
-                                                (data.phase === 0 ? (
-                                                    <div className="status-bar-circle"><i className="material-icons">{
-                                                        data.players.length > 2 ? "thumb_up" : "block"
-                                                    }</i></div>
-                                                ) : (
-                                                    (data.phase === 1 || data.phase === 2 || data.phase === 3) ? (
-                                                        <Avatar data={data} player={data.master}/>
-                                                    ) : <Avatar data={data} player={data.playerLeader}/>))
+                                            !data.playerWin
+                                                ? (<Avatar data={data} player={data.master}/>)
                                                 : (<Avatar data={data} player={data.playerWin}/>)
                                         }
-
                                         </div>
                                     </div>
                                 </div>

@@ -715,7 +715,7 @@ input.hit-slider {
 }
 
 .ready-button.active {
-    box-shadow: 0 0 9px 0px #ffc86f;
+    box-shadow: 0 0 9px 0px #ffffff;
 }
 
 .status-text {
@@ -882,4 +882,8 @@ input.hit-slider {
 
 @keyframes bg-anim-hue {
     50% {hue-rotate(150deg)}
+}
+
+.hit-avatar:hover {
+    z-index: 2;
 }
