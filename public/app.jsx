@@ -173,7 +173,7 @@ class Game extends React.Component {
         this.socket.on("ping", (id) => {
             this.socket.emit("pong", id);
         });
-        document.title = `brainwave - ${initArgs.roomId}`;
+        document.title = `Brainwave - ${initArgs.roomId}`;
         this.socket.emit("init", initArgs);
         this.timerSound = new Audio("/brainwave/tick.mp3");
         this.timerSound.volume = 0.4;
