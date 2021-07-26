@@ -146,8 +146,10 @@ function init(wsServer, path) {
                         room.round--;
                         let maxScore = 0;
                         Object.keys(room.playerScores).forEach((player) => {
-                            if (room.playerScores[player] > maxScore)
+                            if (room.playerScores[player] > maxScore) {
+                                maxScore = room.playerScores[player];
                                 room.playerWin = player;
+                            }
                         });
                     }
                     if (room.playerWin)
