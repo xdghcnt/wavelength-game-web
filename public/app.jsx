@@ -496,8 +496,8 @@ class Game extends React.Component {
                                         || ([1, 2].includes(data.phase) && data.master !== data.userId)
                                 })}>
                                     {
-                                        (data.masterTarget || data.target)
-                                            ? (<div>
+                                        (data.masterTarget != null || data.target != null)
+                                            ? (<div class="target-meters">
                                                 <div className="target-meter" style={{
                                                     left: `${data.masterTarget || data.target}%`
                                                 }}/>
