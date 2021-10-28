@@ -5,7 +5,8 @@
   "private": true,
   "files": [
     "module.js",
-    "public"
+    "public",
+    "words.json"
   ],
   "dependencies": {
     "randomcolor": "0.5.3"
