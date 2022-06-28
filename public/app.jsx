@@ -30,7 +30,7 @@ class Player extends React.Component {
                     </i>) : ""}
                 </div>
                 <div className="player-name-section">
-                    <span className="player-name">{data.master === id ? "> " : ""}{data.playerNames[id]}</span>
+                    <span className="player-name">{data.master === id ? "> " : ""}<PlayerName data={data} id={id} /></span>
                     &nbsp;({data.playerScores[id] || 0})
                     <div className="player-host-controls">
                         {(data.hostId === data.userId && data.userId !== id) ? (
@@ -63,7 +63,7 @@ class Avatar extends React.Component {
         const
             hasAvatar = !!this.props.data.playerAvatars[this.props.player],
             playerBorder = !!this.props.hasBorder,
-            avatarURI = `/brainwave/avatars/${this.props.player}/${this.props.data.playerAvatars[this.props.player]}.png`;
+            avatarURI = window.commonRoom.getPlayerAvatarURL(this.props.player);
         return (
             <div className={cs("avatar", {"has-avatar": hasAvatar})}
                  style={{
@@ -92,11 +92,11 @@ class Game extends React.Component {
         const initArgs = {};
         if (!parseInt(localStorage.darkThemeDixit))
             document.body.classList.add("dark-theme");
-        if (!localStorage.dixitUserId || !localStorage.dixitUserToken) {
+        if (!localStorage.dixitUserId || !localStorage.userToken) {
             while (!localStorage.userName)
                 localStorage.userName = prompt("Your name");
             localStorage.dixitUserId = makeId();
-            localStorage.dixitUserToken = makeId();
+            localStorage.userToken = makeId();
         }
         if (!location.hash)
             history.replaceState(undefined, undefined, location.origin + location.pathname + "#" + makeId());
@@ -109,17 +109,17 @@ class Game extends React.Component {
         initArgs.avatarId = localStorage.avatarId;
         initArgs.roomId = this.roomId = location.hash.substr(1);
         initArgs.userId = this.userId = localStorage.dixitUserId;
-        initArgs.token = this.userToken = localStorage.dixitUserToken;
+        initArgs.token = this.userToken = localStorage.userToken;
         initArgs.userName = localStorage.userName;
         initArgs.wssToken = window.wssToken;
-        this.socket = window.socket.of("brainwave");
+        this.socket = window.socket.of(location.pathname);
         this.player = {cards: []};
         this.socket.on("state", state => {
             CommonRoom.processCommonRoom(state, this.state, {
                 maxPlayers: "∞",
                 largeImageKey: "brainwave",
                 details: "Brainwave"
-            });
+            }, this);
             if (this.state.phase && state.phase !== 0 && !parseInt(localStorage.muteSounds)) {
                 if (this.state.master !== this.userId && state.master === this.userId)
                     this.masterSound.play();
@@ -220,16 +220,6 @@ class Game extends React.Component {
             this.socket.emit("spectators-join");
     }
 
-    handleRemovePlayer(id, evt) {
-        evt.stopPropagation();
-        popup.confirm({content: `Removing ${this.state.playerNames[id]}?`}, (evt) => evt.proceed && this.socket.emit("remove-player", id));
-    }
-
-    handleGiveHost(id, evt) {
-        evt.stopPropagation();
-        popup.confirm({content: `Give host ${this.state.playerNames[id]}?`}, (evt) => evt.proceed && this.socket.emit("give-host", id));
-    }
-
     handleChangeTime(value, type) {
         this.debouncedEmit("set-time", type, value);
     }
@@ -238,46 +228,8 @@ class Game extends React.Component {
         this.debouncedEmit("set-goal", value);
     }
 
-    handleClickChangeName() {
-        popup.prompt({content: "New name", value: this.state.playerNames[this.state.userId] || ""}, (evt) => {
-            if (evt.proceed && evt.input_value.trim()) {
-                this.socket.emit("change-name", evt.input_value.trim());
-                localStorage.userName = evt.input_value.trim();
-            }
-        });
-    }
-
     handleClickSetAvatar() {
-        document.getElementById("avatar-input").click();
-    }
-
-    handleSetAvatar(event) {
-        const input = event.target;
-        if (input.files && input.files[0])
-            this.sendAvatar(input.files[0]);
-    }
-
-    sendAvatar(file) {
-        const
-            uri = "/common/upload-avatar",
-            xhr = new XMLHttpRequest(),
-            fd = new FormData(),
-            fileSize = ((file.size / 1024) / 1024).toFixed(4); // MB
-        if (fileSize <= 5) {
-
-            xhr.open("POST", uri, true);
-            xhr.onreadystatechange = () => {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    localStorage.avatarId = xhr.responseText;
-                    this.socket.emit("update-avatar", localStorage.avatarId);
-                } else if (xhr.readyState === 4 && xhr.status !== 200) popup.alert({content: "File upload error"});
-            };
-            fd.append("avatar", file);
-            fd.append("userId", this.userId);
-            fd.append("userToken", this.userToken);
-            xhr.send(fd);
-        } else
-            popup.alert({content: "File shouldn't be larger than 5 MB"});
+        window.commonRoom.handleClickSetImage('avatar');
     }
 
     handleToggleTheme() {
@@ -393,7 +345,7 @@ class Game extends React.Component {
                     status = "Нужно минимум 3 человека";
             } else if (!isMaster) {
                 if (data.phase === 1)
-                    status = `${data.playerNames[data.master]} придумывает...`;
+                    status = `${window.commonRoom.getPlayerName(data.master)} придумывает...`;
                 else if (data.phase === 2)
                     status = "Отгадываем";
                 else if (data.phase === 3)
@@ -408,6 +360,7 @@ class Game extends React.Component {
             }
             return (
                 <div className={cs("game", {timed: this.state.timed})}>
+                    <CommonRoom state={this.state} app={this}/>
                     <div className={
                         cs("game-board", {
                             active: this.state.inited,
@@ -428,7 +381,7 @@ class Game extends React.Component {
                                             </div>
                                         </div>) : ""}
                                     {!data.playerWin ? (data.clue ? (<div
-                                        className="command">«{data.clue}»</div>) : "") : `The winner is ${data.playerNames[data.playerWin]}!`}
+                                        className="command">«{data.clue}»</div>) : "") : `The winner is ${window.commonRoom.getPlayerName(data.playerWin)}!`}
                                     <div className="status-text">{status}</div>
                                 </div>
                                 <div className="timer-section">
@@ -455,9 +408,9 @@ class Game extends React.Component {
                                 <div className="player-list">
                                     {data.players.map((id => (
                                         <Player key={id} data={data} id={id}
-                                                handleGiveHost={(id, evt) => this.handleGiveHost(id, evt)}
+                                                handleGiveHost={(id, evt) => window.commonRoom.handleGiveHost(id, evt)}
                                                 handleAvatarClick={() => this.handleClickSetAvatar()}
-                                                handleRemovePlayer={(id, evt) => this.handleRemovePlayer(id, evt)}/>
+                                                handleRemovePlayer={(id, evt) => window.commonRoom.handleRemovePlayer(id, evt)}/>
                                     )))}
                                     {!~data.players.indexOf(data.userId) ? (
                                         <div className="join-button">Play</div>) : ""}
@@ -466,9 +419,9 @@ class Game extends React.Component {
                                      onClick={(evt) => this.handleJoinSpectatorsClick(evt)}>
                                     {data.spectators.map((id => (
                                         <Player key={id} data={data} id={id}
-                                                handleGiveHost={(id) => this.handleGiveHost(id)}
+                                                handleGiveHost={(id) => window.commonRoom.handleGiveHost(id)}
                                                 handleAvatarClick={() => this.handleClickSetAvatar()}
-                                                handleRemovePlayer={(id, evt) => this.handleRemovePlayer(id, evt)}/>
+                                                handleRemovePlayer={(id, evt) => window.commonRoom.handleRemovePlayer(id, evt)}/>
                                     )))}
                                     {!~data.spectators.indexOf(data.userId) ? (
                                         <div className="join-button">Spectate</div>) : ""}
@@ -614,7 +567,7 @@ class Game extends React.Component {
                                 {(isHost && data.paused)
                                     ? (<i onClick={() => this.handleClickRestart()}
                                           className="toggle-theme material-icons settings-button">sync</i>) : ""}
-                                <i onClick={() => this.handleClickChangeName()}
+                                <i onClick={() => window.commonRoom.handleClickChangeName()}
                                    className="toggle-theme material-icons settings-button">edit</i>
                                 {!parseInt(localStorage.muteSounds)
                                     ? (<i onClick={() => this.handleToggleMuteSounds()}
@@ -628,9 +581,7 @@ class Game extends React.Component {
                                           className="toggle-theme material-icons settings-button">wb_sunny</i>)}
                             </div>
                             <i className="settings-hover-button material-icons">settings</i>
-                            <input id="avatar-input" type="file" onChange={evt => this.handleSetAvatar(evt)}/>
                         </div>
-                        <CommonRoom state={this.state} app={this}/>
                     </div>
                 </div>
             );

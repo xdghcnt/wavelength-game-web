@@ -4,7 +4,6 @@ function init(wsServer, path) {
         randomColor = require('randomcolor'),
         app = wsServer.app,
         registry = wsServer.users,
-        channel = "brainwave",
         testMode = process.argv[2] === "debug";
 
     app.use("/brainwave", wsServer.static(`${__dirname}/public`));
@@ -15,8 +14,8 @@ function init(wsServer, path) {
     const words = JSON.parse(fs.readFileSync(`${__dirname}/words.json`))['ru'];
 
     class GameState extends wsServer.users.RoomState {
-        constructor(hostId, hostData, userRegistry) {
-            super(hostId, hostData, userRegistry);
+        constructor(hostId, hostData, userRegistry, registry) {
+            super(hostId, hostData, userRegistry, registry.games.codenames.id, path);
             const
                 room = {
                     ...this.room,
@@ -46,7 +45,6 @@ function init(wsServer, path) {
                     goal: 3,
                     time: null,
                     paused: true,
-                    playerAvatars: {}
                 },
                 state = {
                     target: null,
@@ -229,14 +227,6 @@ function init(wsServer, path) {
                     room.playerColors[user] = room.playerColors[user] || randomColor();
                     room.onlinePlayers.add(user);
                     room.playerNames[user] = data.userName.substr && data.userName.substr(0, 60);
-                    if (data.avatarId) {
-                        fs.stat(`${registry.config.appDir || __dirname}/public/avatars/${user}/${data.avatarId}.png`, (err) => {
-                            if (!err) {
-                                room.playerAvatars[user] = data.avatarId;
-                                update()
-                            }
-                        });
-                    }
                     update();
                     updatePlayerState();
                 },
@@ -264,10 +254,6 @@ function init(wsServer, path) {
             this.userEvent = userEvent;
             this.eventHandlers = {
                 ...this.eventHandlers,
-                "update-avatar": (user, id) => {
-                    room.playerAvatars[user] = id;
-                    update()
-                },
                 "toggle-lock": (user) => {
                     if (user === room.hostId && room.paused)
                         room.teamsLocked = !room.teamsLocked;
@@ -303,11 +289,6 @@ function init(wsServer, path) {
                 "set-goal": (user, value) => {
                     if (user === room.hostId && !isNaN(parseInt(value)))
                         room.goal = parseInt(value);
-                    update();
-                },
-                "change-name": (user, value) => {
-                    if (value)
-                        room.playerNames[user] = value.substr && value.substr(0, 60);
                     update();
                 },
                 "remove-player": (user, playerId) => {
@@ -442,7 +423,7 @@ function init(wsServer, path) {
         }
     }
 
-    registry.createRoomManager(path, channel, GameState);
+    registry.createRoomManager(path, GameState);
 }
 
 module.exports = init;
