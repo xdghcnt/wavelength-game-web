@@ -15,7 +15,7 @@ function init(wsServer, path) {
 
     class GameState extends wsServer.users.RoomState {
         constructor(hostId, hostData, userRegistry, registry) {
-            super(hostId, hostData, userRegistry, registry.games.codenames.id, path);
+            super(hostId, hostData, userRegistry, 'brainwave', path);
             const
                 room = {
                     ...this.room,

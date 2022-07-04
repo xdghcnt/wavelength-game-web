@@ -89,29 +89,10 @@ class Avatar extends React.Component {
 
 class Game extends React.Component {
     componentDidMount() {
-        const initArgs = {};
+        this.gameName = "brainwave";
+        const initArgs = CommonRoom.roomInit(this);
         if (!parseInt(localStorage.darkThemeDixit))
             document.body.classList.add("dark-theme");
-        if (!localStorage.dixitUserId || !localStorage.userToken) {
-            while (!localStorage.userName)
-                localStorage.userName = prompt("Your name");
-            localStorage.dixitUserId = makeId();
-            localStorage.userToken = makeId();
-        }
-        if (!location.hash)
-            history.replaceState(undefined, undefined, location.origin + location.pathname + "#" + makeId());
-        else
-            history.replaceState(undefined, undefined, location.origin + location.pathname + location.hash);
-        if (localStorage.acceptDelete) {
-            initArgs.acceptDelete = localStorage.acceptDelete;
-            delete localStorage.acceptDelete;
-        }
-        initArgs.avatarId = localStorage.avatarId;
-        initArgs.roomId = this.roomId = location.hash.substr(1);
-        initArgs.userId = this.userId = localStorage.dixitUserId;
-        initArgs.token = this.userToken = localStorage.userToken;
-        initArgs.userName = localStorage.userName;
-        initArgs.wssToken = window.wssToken;
         this.socket = window.socket.of(location.pathname);
         this.player = {cards: []};
         this.socket.on("state", state => {
@@ -151,19 +132,6 @@ class Game extends React.Component {
         });
         this.socket.on("reload", () => {
             setTimeout(() => window.location.reload(), 3000);
-        });
-        this.socket.on("auth-required", () => {
-            this.setState(Object.assign({}, this.state, {
-                userId: this.userId,
-                authRequired: true
-            }));
-            if (grecaptcha)
-                grecaptcha.render("captcha-container", {
-                    sitekey: "",
-                    callback: (key) => this.socket.emit("auth", key)
-                });
-            else
-                setTimeout(() => window.location.reload(), 3000)
         });
         this.socket.on("prompt-delete-prev-room", (roomList) => {
             if (localStorage.acceptDelete =
