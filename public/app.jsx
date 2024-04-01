@@ -30,7 +30,8 @@ class Player extends React.Component {
                     </i>) : ""}
                 </div>
                 <div className="player-name-section">
-                    <span className="player-name">{data.master === id ? "> " : ""}<PlayerName data={data} id={id} /></span>
+                    <span className="player-name">{data.master === id ? "> " : ""}<PlayerName data={data}
+                                                                                              id={id}/></span>
                     &nbsp;({data.playerScores[id] || 0})
                     <div className="player-host-controls">
                         {(data.hostId === data.userId && data.userId !== id) ? (
@@ -63,7 +64,7 @@ class Avatar extends React.Component {
         const
             hasAvatar = !!this.props.data.playerAvatars[this.props.player],
             playerBorder = !!this.props.hasBorder,
-            avatarURI = window.commonRoom.getPlayerAvatarURL(this.props.player);
+            avatarURI = window.commonRoom?.getPlayerAvatarURL(this.props.player);
         return (
             <div className={cs("avatar", {"has-avatar": hasAvatar})}
                  style={{
@@ -313,7 +314,7 @@ class Game extends React.Component {
                     status = "Нужно минимум 3 человека";
             } else if (!isMaster) {
                 if (data.phase === 1)
-                    status = `${window.commonRoom.getPlayerName(data.master)} придумывает...`;
+                    status = `${window.commonRoom?.getPlayerName(data.master)} придумывает...`;
                 else if (data.phase === 2)
                     status = "Отгадываем";
                 else if (data.phase === 3)
@@ -349,7 +350,7 @@ class Game extends React.Component {
                                             </div>
                                         </div>) : ""}
                                     {!data.playerWin ? (data.clue ? (<div
-                                        className="command">«{data.clue}»</div>) : "") : `The winner is ${window.commonRoom.getPlayerName(data.playerWin)}!`}
+                                        className="command">«{data.clue}»</div>) : "") : `The winner is ${window.commonRoom?.getPlayerName(data.playerWin)}!`}
                                     <div className="status-text">{status}</div>
                                 </div>
                                 <div className="timer-section">
